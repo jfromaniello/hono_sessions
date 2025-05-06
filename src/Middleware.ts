@@ -11,29 +11,30 @@ export function sessionMiddleware(options: SessionOptions): MiddlewareHandler {
   const expireAfterSeconds = options.expireAfterSeconds
   const cookieOptions = options.cookieOptions
   const sessionCookieName = options.sessionCookieName || 'session'
+  const autoExtendExpiration = options.autoExtendExpiration ?? false
 
   if (store instanceof CookieStore) {
     store.sessionCookieName = sessionCookieName
-  
+
     if (encryptionKey) {
       store.encryptionKey = encryptionKey
     } else {
       throw new Error('encryptionKey is required while using CookieStore. encryptionKey must be at least 32 characters long.')
     }
-  
+
     if (cookieOptions) {
       store.cookieOptions = cookieOptions
     }
   }
 
   const middleware = createMiddleware(async (c, next) => {
-    const session = new Session
+    const session = new Session(expireAfterSeconds)
     let sid = ''
     let session_data: SessionData | null | undefined
     let createNewSession = false
 
     const sessionCookie = getCookie(c, sessionCookieName)
-  
+
     if (sessionCookie) { // If there is a session cookie present...
 
       if (store instanceof CookieStore) {
@@ -42,7 +43,7 @@ export function sessionMiddleware(options: SessionOptions): MiddlewareHandler {
         try {
           sid = (encryptionKey ? await decrypt(encryptionKey, sessionCookie) : sessionCookie) as string
           session_data = await store.getSessionById(sid)
-          
+
           if (session_data) {
             session_data._id = sid
           }
@@ -55,7 +56,9 @@ export function sessionMiddleware(options: SessionOptions): MiddlewareHandler {
         session.setCache(session_data)
 
         if (session.sessionValid()) {
-          session.reupSession(expireAfterSeconds)
+          if (autoExtendExpiration) {
+            session.reupSession()
+          }
         } else {
           store instanceof CookieStore ? await store.deleteSession(c) : await store.deleteSession(sid)
           createNewSession = true
@@ -83,23 +86,29 @@ export function sessionMiddleware(options: SessionOptions): MiddlewareHandler {
         await store.createSession(sid, defaultData)
       }
 
-      session.setCache(defaultData)
+      session.setCache(defaultData, true)
     }
-  
+
     if (!(store instanceof CookieStore)) {
       setCookie(c, sessionCookieName, encryptionKey ? await encrypt(encryptionKey, sid) : sid, cookieOptions)
     }
 
-    session.updateAccess()
+    if (autoExtendExpiration) {
+      session.updateAccess()
+    }
 
     c.set('session', session)
 
     await next()
 
+    if (session.isStale()) {
+      session.touch()
+    }
+
     const shouldDelete = session.getCache()._delete;
     const shouldRotateSessionKey = c.get("session_key_rotation") === true;
     const storeIsCookieStore = store instanceof CookieStore;
-    
+
     if (shouldDelete) {
       store instanceof CookieStore
         ? await store.deleteSession(c)
@@ -136,7 +145,8 @@ export function sessionMiddleware(options: SessionOptions): MiddlewareHandler {
      */
     const shouldPersistSession =
       !shouldDelete &&
-      (!shouldRotateSessionKey || storeIsCookieStore);
+      (!shouldRotateSessionKey || storeIsCookieStore) &&
+      session.isStale();
 
     if (shouldPersistSession) {
       store instanceof CookieStore
