@@ -19,20 +19,23 @@ await build({
   },
   package: {
     // package.json properties
-    name: "hono-sessions",
+    name: "@jfromaniello/hono-sessions",
     version,
-    description: "Cookie-based sessions for Hono web framework",
+    description: "Cookie-based sessions for Hono web framework (fork of hono-sessions)",
     license: "MIT",
     repository: {
       type: "git",
-      url: "git+https://github.com/jcs224/hono_sessions.git",
+      url: "git+https://github.com/jfromaniello/hono_sessions.git",
     },
     bugs: {
-      url: "https://github.com/jcs224/hono_sessions/issues",
+      url: "https://github.com/jfromaniello/hono_sessions/issues",
     },
     devDependencies: {
       "@types/object-hash": "^3.0.0",
-    }
+    },
+    "publishConfig": {
+      "access": "public"
+    },
   },
   // typeCheck: false,
   // scriptModule: false,
@@ -46,3 +49,4 @@ await build({
 Deno.copyFileSync("LICENSE", "npm/LICENSE");
 Deno.copyFileSync("README.md", "npm/README.md");
 Deno.copyFileSync("extras/.npmignore", "npm/.npmignore")
+Deno.copyFileSync("extras/.npmrc", "npm/.npmrc")
