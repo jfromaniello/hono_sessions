@@ -22,8 +22,8 @@ const session_routes = new Hono<{
 }>()
 
 session_routes.use('*', session({
-  store, 
-  encryptionKey: Deno.env.get('ENCRYPTION_KEY'), 
+  store,
+  encryptionKey: Deno.env.get('ENCRYPTION_KEY'),
   expireAfterSeconds: 30,
   cookieOptions: {
     sameSite: 'Lax',
@@ -77,11 +77,11 @@ session_routes.get('/', (c) => {
         ${ error && html`<p id="error">${error}</p>` }
         ${ failedLoginAttempts && html`<p id="failed-login-attempts">Failed login attempts: ${ failedLoginAttempts }</p>` }
 
-        ${email ? 
+        ${email ?
         html`<form id="logout" action="/logout" method="post">
             <button name="logout" id="logout-button" type="submit">Log out ${email}</button>
         </form>`
-        : 
+        :
         html`<form id="login" action="/login" method="post">
             <p>
                 <input id="email" name="email" type="text" placeholder="you@email.com">
@@ -90,7 +90,7 @@ session_routes.get('/', (c) => {
                 <input id="password" name="password" type="password" placeholder="password">
             </p>
             <button id="login-button" name="login" type="submit">Log in</button>
-        </form>` 
+        </form>`
       }
     </body>
   </html>`)
