@@ -1,15 +1,7 @@
 {
   "name": "@jfromaniello/hono-sessions",
   "version": "1.1.0",
-  "description": "Cookie-based sessions for Hono web framework (fork of hono-sessions)",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jfromaniello/hono_sessions.git"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/jfromaniello/hono_sessions/issues"
-  },
+  "description": "Cookie-based sessions for Hono web framework (fork of jcs224/hono-sessions)",
   "author": {
     "name": "José F. Romaniello",
     "url": "https://x.com/jfroma"
@@ -20,7 +12,8 @@
       "url": "https://github.com/jcs224"
     }
   ],
-  "module": "./dist/mod.js",
+  "license": "MIT",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
       "import": "./dist/index.js"
@@ -29,20 +22,30 @@
       "import": "./dist/store/bun/BunSqliteStore.js"
     }
   },
-  "scripts": {
-    "build": "tsc",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui",
-    "prepare": "npm run build",
-    "example:basic": "tsx watch --env-file=examples/.env examples/basic/index.ts",
-    "example:auth-required": "tsx watch --env-file=examples/.env examples/auth-required/index.tsx",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix"
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jfromaniello/hono_sessions.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jfromaniello/hono_sessions/issues"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "hono": "^4.7.6",
