@@ -2,6 +2,21 @@
 
 Use cookie-based sessions with the [Hono](https://hono.dev/) framework.
 
+### Fork notes
+
+This is a fork of [hono-session](https://www.npmjs.com/package/hono-sessions).
+
+Notable changes:
+
+- Improve CookieStore to handle data beyond the 4kb limit.
+- Prevent unnecesary session writes.
+- Add `session.touch()` method to update the session expiration time when no changes had been made to the session.
+- Add more tests for CookieStore.
+
+As I am not versed in Deno yet, I have added the necessary node.js files to dev and test locally.
+
+---
+
 ### Supported runtimes
 
 Hono Sessions is currently tested on these runtimes:
@@ -87,7 +102,7 @@ app.use(
       path: "/", // Required for this library to work properly
       httpOnly: true, // Recommended to avoid XSS attacks
     },
-  })
+  }),
 );
 
 app.get("/", async (c, next) => {
@@ -96,7 +111,7 @@ app.get("/", async (c, next) => {
   session.set("counter", (session.get("counter") || 0) + 1);
 
   return c.html(
-    `<h1>You have visited this page ${session.get("counter")} times</h1>`
+    `<h1>You have visited this page ${session.get("counter")} times</h1>`,
   );
 });
 
@@ -147,7 +162,7 @@ app.use(
   sessionMiddleware({
     store,
     // ... other session options
-  })
+  }),
 );
 
 // Other app code
@@ -195,7 +210,7 @@ app.use(
   "*",
   sessionMiddleware({
     // ...
-  })
+  }),
 );
 ```
 
