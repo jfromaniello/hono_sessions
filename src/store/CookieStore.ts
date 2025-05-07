@@ -7,6 +7,39 @@ interface CookieStoreOptions {
   sessionCookieName: string
 }
 
+function chunkStringByBytes(input: string, maxBytes: number): string[] {
+  const encoder = new TextEncoder()
+  const chunks: string[] = []
+  let current = ''
+  let currentBytes = 0
+
+  for (const char of input) {
+    const charBytes = encoder.encode(char).length
+    if (currentBytes + charBytes > maxBytes) {
+      chunks.push(current)
+      current = char
+      currentBytes = charBytes
+    } else {
+      current += char
+      currentBytes += charBytes
+    }
+  }
+
+  if (current) {
+    chunks.push(current)
+  }
+
+  return chunks
+}
+
+const getCookieName = (name: string, index: number) => {
+  if (index === 0) {
+    return name
+  } else {
+    return `${name}_${index}`
+  }
+};
+
 /**
  * Cookie storage driver class
  */
@@ -23,8 +56,20 @@ class CookieStore {
 
   async getSession(c: Context): Promise<SessionData | null> {
     let session_data_raw: string
+    let sessionCookie: string  = ''
+    const countRaw = getCookie(c, `${this.sessionCookieName}_count`)
+    const cookieCount = countRaw ? parseInt(countRaw, 10) : 1
+    if (isNaN(cookieCount) || cookieCount < 1) {
+      throw new Error(`Invalid session cookie count: ${countRaw}`)
+    }
 
-    const sessionCookie = getCookie(c, this.sessionCookieName)
+    for (let i = 0; i < cookieCount; i++) {
+      const chunk = getCookie(c, getCookieName(this.sessionCookieName, i))
+      if (!chunk) {
+        throw new Error(`Session cookie chunk ${i} not found`)
+      }
+      sessionCookie += chunk
+    }
 
     if (this.encryptionKey && sessionCookie) {
       // Decrypt cookie string. If decryption fails, return null
@@ -47,17 +92,39 @@ class CookieStore {
   }
 
   async createSession(c: Context, initial_data: SessionData) {
-    const stringified_data = JSON.stringify(initial_data)
-    setCookie(c, this.sessionCookieName, this.encryptionKey ? await encrypt(this.encryptionKey, stringified_data) : stringified_data, this.cookieOptions)
+    this.persistSessionData(c, initial_data)
   }
 
   async deleteSession(c: Context) {
-    setCookie(c, this.sessionCookieName, this.encryptionKey ? await encrypt(this.encryptionKey, '') : '', this.cookieOptions)
+    for (let i = 0; i < 10; i++) {
+      setCookie(c, getCookieName(this.sessionCookieName, i), '', { ...this.cookieOptions, maxAge: 0 })
+    }
+    setCookie(c, `${this.sessionCookieName}_count`, '', this.cookieOptions)
   }
 
   async persistSessionData(c: Context, session_data: SessionData) {
     const stringified_data = JSON.stringify(session_data)
-    setCookie(c, this.sessionCookieName, this.encryptionKey ? await encrypt(this.encryptionKey, stringified_data) : stringified_data, this.cookieOptions)
+    const payload = this.encryptionKey ? await encrypt(this.encryptionKey, stringified_data) : stringified_data
+
+    const CHUNK_SIZE = 4000
+    const splitPayload = chunkStringByBytes(payload, CHUNK_SIZE)
+
+    // Clean old chunks (e.g. session_0..n)
+    for (let i = 0; i < 10; i++) {
+      setCookie(c, getCookieName(this.sessionCookieName, i), '', { ...this.cookieOptions, maxAge: 0 })
+    }
+    setCookie(c, `${this.sessionCookieName}_count`, '', this.cookieOptions)
+
+    if (splitPayload.length === 1) {
+      setCookie(c, `${this.sessionCookieName}_0`, splitPayload[0], this.cookieOptions)
+    } else if (splitPayload.length > 10) {
+      throw new Error("Session too large for cookie storage")
+    } else if (splitPayload.length > 1) {
+      for (let i = 0; i < splitPayload.length; i++) {
+        setCookie(c, getCookieName(this.sessionCookieName, i), splitPayload[i], this.cookieOptions)
+      }
+      setCookie(c, `${this.sessionCookieName}_count`, String(splitPayload.length), this.cookieOptions)
+    }
   }
 }
 
