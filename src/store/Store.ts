@@ -1,4 +1,4 @@
-import { SessionData } from "../../mod.ts"
+import { SessionData } from "../index.js"
 
 /**
  * Interface for required methods in session storage drivers

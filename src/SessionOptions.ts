@@ -1,12 +1,12 @@
-import Store from './store/Store.ts'
-import CookieStore from './store/CookieStore.ts'
-import { CookieOptions } from '../deps.ts';
+import type { CookieOptions } from "hono/utils/cookie";
+import CookieStore from "./store/CookieStore";
+import Store from "./store/Store";
 
 export default interface SessionOptions {
-  store: Store | CookieStore
-  encryptionKey?: string,
-  expireAfterSeconds?: number,
-  cookieOptions?: CookieOptions,
-  sessionCookieName?: string,
-  autoExtendExpiration?: boolean,
+  store: Store | CookieStore;
+  encryptionKey?: string;
+  expireAfterSeconds?: number;
+  cookieOptions?: CookieOptions;
+  sessionCookieName?: string;
+  autoExtendExpiration?: boolean;
 }
