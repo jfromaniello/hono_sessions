@@ -34,7 +34,7 @@ export class Session<T = any> {
   }
 
   isStale(): boolean {
-    return typeof this.hash === "string" && this.hash !== hash(this.cache);
+    return !this.hash || this.hash !== hash(this.cache);
   }
 
   getCache(): SessionData<T> {
