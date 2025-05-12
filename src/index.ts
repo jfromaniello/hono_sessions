@@ -1,28 +1,22 @@
-import MemoryStore from './store/MemoryStore.js'
-import CookieStore from './store/CookieStore.js'
+import { decrypt, encrypt } from "./Crypto.js";
+import { CloudflareKVStore } from "./store/CloudflareKVStore.js";
+import CookieStore from "./store/CookieStore.js";
+import MemoryStore from "./store/MemoryStore.js";
 
-import {
-  encrypt,
-  decrypt
-} from './Crypto.js'
-
-import { sessionMiddleware } from './Middleware.js'
-import { Session } from './Session.js'
-import type { SessionData } from './Session.js'
-import Store from './store/Store.js'
-import type SessionOptions from './SessionOptions.js'
+import { sessionMiddleware } from "./Middleware.js";
+import type { SessionData } from "./Session.js";
+import { Session } from "./Session.js";
+import type SessionOptions from "./SessionOptions.js";
+import Store from "./store/Store.js";
 
 export {
-  MemoryStore,
+  CloudflareKVStore,
   CookieStore,
-  sessionMiddleware,
-  encrypt,
   decrypt,
+  encrypt,
+  MemoryStore,
   Session,
-}
+  sessionMiddleware,
+};
 
-export type {
-  SessionData,
-  SessionOptions,
-  Store
-}
+export type { SessionData, SessionOptions, Store };

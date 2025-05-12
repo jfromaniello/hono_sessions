@@ -12,8 +12,8 @@ Notable changes:
 - Prevent unnecesary session writes.
 - Add `session.touch()` method to update the session expiration time when no changes had been made to the session.
 - Add more tests for CookieStore.
-
-As I am not versed in Deno yet, I have added the necessary node.js files to dev and test locally.
+- Add CloudflareKVStore implementation. Store session data in Cloudflare KV storage.
+  As I am not versed in Deno yet, I have added the necessary node.js files to dev and test locally.
 
 ---
 
