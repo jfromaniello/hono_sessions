@@ -15,6 +15,27 @@ Notable changes:
 - Add CloudflareKVStore implementation. Store session data in Cloudflare KV storage.
   As I am not versed in Deno yet, I have added the necessary node.js files to dev and test locally.
 
+### Configure thru environment variables
+
+```
+## Confgiure the Cookie session store
+export SESSION_STORE=cookie
+
+## or configure Cloudflare KV Store
+export SESSION_STORE=cloudflare-kv
+export SESSION_STORE_NAMESPACE=Sessions
+
+export SESSION_COOKIE_NAME=session
+export SESSION_EXPIRE_AFTER_SECONDS=900
+export SESSION_ENCRYPTION_KEY=password_at_least_32_characters_long
+```
+
+Then:
+
+```js
+app.use(sessionMiddleware());
+```
+
 ---
 
 ### Supported runtimes
