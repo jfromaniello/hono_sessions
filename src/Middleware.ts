@@ -1,6 +1,6 @@
 import { MiddlewareHandler } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
-import { createMiddleware } from "hono/factory";
+import { createMiddlewareWithContextStore } from "./ContextStore";
 import { decrypt, encrypt } from "./Crypto";
 import { Session, SessionData } from "./Session";
 import SessionOptions from "./SessionOptions";
@@ -8,10 +8,14 @@ import CookieStore from "./store/CookieStore";
 
 /** Function that returns a Hono-compatible session middleware */
 export function sessionMiddleware(options: SessionOptions): MiddlewareHandler {
-  const store = options.store;
+  const store = options.store ?? new CookieStore();
   const encryptionKey = options.encryptionKey;
   const expireAfterSeconds = options.expireAfterSeconds;
-  const cookieOptions = options.cookieOptions;
+  const cookieOptions = options.cookieOptions ?? {
+    httpOnly: true,
+    sameSite: "Lax",
+  };
+
   const sessionCookieName = options.sessionCookieName || "session";
   const autoExtendExpiration = options.autoExtendExpiration ?? false;
 
@@ -31,7 +35,7 @@ export function sessionMiddleware(options: SessionOptions): MiddlewareHandler {
     }
   }
 
-  const middleware = createMiddleware(async (c, next) => {
+  const middleware = createMiddlewareWithContextStore(async (c, next) => {
     const session = new Session(expireAfterSeconds);
     let sid = "";
     let session_data: SessionData | null | undefined;

@@ -1,3 +1,4 @@
+import { asyncLocalStore } from "../ContextStore";
 import { SessionData } from "../Session";
 import Store from "./Store";
 
@@ -18,7 +19,7 @@ export interface CloudflareKVStoreOptions {
   /**
    * KV namespace binding to use for storage
    */
-  kv: KVNamespace;
+  kv: string;
   /**
    * Session expiration in seconds (default: 24 hours)
    */
@@ -33,7 +34,7 @@ export interface CloudflareKVStoreOptions {
  * Session store implementation using Cloudflare Workers KV
  */
 export class CloudflareKVStore implements Store {
-  private kv: KVNamespace;
+  private kvName: string;
   private expirationTtl: number;
   private prefix: string;
 
@@ -41,9 +42,22 @@ export class CloudflareKVStore implements Store {
    * Creates a new KV session store
    */
   constructor(options: CloudflareKVStoreOptions) {
-    this.kv = options.kv;
+    this.kvName = options.kv;
     this.expirationTtl = options.expirationTtl || 86400; // Default: 24 hours
     this.prefix = options.prefix || "session:";
+  }
+
+  private get kv(): KVNamespace {
+    const context = asyncLocalStore.getStore();
+    if (!context) {
+      throw new Error("KV namespace is not available in the current context");
+    }
+    if (!context.env || !context.env[this.kvName]) {
+      throw new Error(
+        `KV namespace "${this.kvName}" is not available in the current context`,
+      );
+    }
+    return context.env[this.kvName] as KVNamespace;
   }
 
   /**
