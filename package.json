@@ -1,6 +1,6 @@
 {
   "name": "@jfromaniello/hono-sessions",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Cookie-based sessions for Hono web framework (fork of jcs224/hono-sessions)",
   "author": {
     "name": "José F. Romaniello",
